@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+	<name>PLG_SYSTEM_CLASS_EXTENDER</name>
+	<creationDate>2021-07-16</creationDate>
+	<author>Pieter-Jan de Vries/Obix webtechniek</author>
+	<authorEmail>pieter@obix.nl</authorEmail>
+	<authorUrl>https://www.obix.nl</authorUrl>
+	<copyright>Copyright © 2020 Obix webtechniek. All rights reserved.</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<version>1.0.0</version>
+	<description>PLG_SYSTEM_CLASS_EXTENDER_XML_DESCRIPTION</description>
+
+	<!-- Scripts to run on installation -->
+	<scriptfile>script.php</scriptfile>
+
+	<!-- Plugin files -->
+	<files>
+		<filename plugin="classextender">classextender.php</filename>
+		<folder>language</folder>
+		<folder>rules</folder>
+		<filename>LICENSE.txt</filename>
+		<filename>README.md</filename>
+	</files>
+
+	<!-- Config parameters -->
+	<config>
+		<fields name="params">
+			<fieldset name="basic" addrulepath="plugins/system/classextender/rules">
+				<field
+					name="extenderRootPath"
+					type="text"
+					default=""
+					label="PLG_SYSTEM_CLASS_EXTENDER_ROOT_PATH_LABEL"
+					description="PLG_SYSTEM_CLASS_EXTENDER_ROOT_PATH_DESC"
+					validate="validfolderpath"
+				/>
+				<field
+						name="extenderRootPathCreate"
+						type="radio"
+						default="1"
+						label="PLG_SYSTEM_CLASS_EXTENDER_ROOT_PATH_CREATE_LABEL"
+						description="PLG_SYSTEM_CLASS_EXTENDER_ROOT_PATH_CREATE_DESC"
+						class="btn-group btn-group-yesno"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+
+	<updateservers>
+		<server type="extension" priority="1" name="Obix Class Extender System Plugin">
+			https://raw.githubusercontent.com/pjdevries/plg_system_classextender/master/classextender_update.xml
+		</server>
+	</updateservers>
+</extension>
