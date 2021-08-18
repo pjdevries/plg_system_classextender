@@ -56,7 +56,15 @@ class JFormRuleValidFolderPath extends FormRule
 				$file = $path . '/class_extensions.json';
 				touch($file);
 
-				File::write($file, '[]');
+				File::write($file, <<<JSON
+[
+  {
+    "class": "",
+    "file": ""
+  }
+]
+JSON
+				);
 
 				return true;
 			}
