@@ -10,9 +10,11 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Form\FormRule;
 use Joomla\CMS\Language\Text;
 
-class JFormRuleValidFolderPath extends \JFormRule
+class JFormRuleValidFolderPath extends FormRule
 {
 	public function test(SimpleXMLElement $element, $value, $group = null, JRegistry $input = null, JForm $form = null)
 	{
@@ -51,6 +53,11 @@ class JFormRuleValidFolderPath extends \JFormRule
 		{
 			if (@mkdir($path, 0755, true))
 			{
+				$file = $path . '/class_extensions.json';
+				touch($file);
+
+				File::write($file, '[]');
+
 				return true;
 			}
 
