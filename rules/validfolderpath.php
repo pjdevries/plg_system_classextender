@@ -57,13 +57,13 @@ class JFormRuleValidFolderPath extends FormRule
 				touch($file);
 
 				File::write($file, <<<JSON
-[
-  {
-    "class": "",
-    "file": ""
-  }
-]
-JSON
+					[
+					  {
+					    "class": "",
+					    "file": ""
+					  }
+					]
+					JSON
 				);
 
 				return true;
