@@ -50,8 +50,6 @@
 	</config>
 
 	<updateservers>
-		<server type="extension" priority="1" name="Obix Class Extender System Plugin">
-			https://raw.githubusercontent.com/pjdevries/plg_system_classextender/master/classextender_update.xml
-		</server>
+		<server type="extension" priority="1" name="Obix Class Extender System Plugin">https://raw.githubusercontent.com/pjdevries/plg_system_classextender/master/classextender_update.xml</server>
 	</updateservers>
 </extension>
