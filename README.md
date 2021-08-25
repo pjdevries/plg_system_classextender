@@ -33,6 +33,13 @@ filtering on the id of the logged in user.
 
 ## Installation and configuration
 
+### Minimal requirements
+
+Joomla! 3.9.x or 4.x
+PHP 7.4
+
+### Installation
+
 Installation of the plugin is the same as for any other Joomla!
 extension. If it is installed for the first time, as opposed
 to ugraded, it should be activated automatically. Doesn't
@@ -45,7 +52,7 @@ be executed before the original classes are loaded by other
 parts of the Joomla! system. Making this plugin the first in
 the execution order, ensures that happens. 
 
-### Configuration
+### <a id="configuration">Configuration</a>
 
 **Class extender folder path**
 
@@ -56,7 +63,9 @@ extended classes. Leading and trailing slashes are ignored.
 **Create if non existent**
 
 Whether or not to create the extender folder if it 
-doesn't exist yet. 
+doesn't exist yet. If a non existing folder was created,
+a basic JSON configuration file (see [JSON specifications](#json-spec) below)
+with empty fields is created as well.
 
 ## What's next
 
@@ -161,8 +170,22 @@ the bootstrap phase, before any plugin events are triggered.
 File `[web root]/<path_to_extender_folder>/class_extensions.json` contains JSON encoded information 
 about the (core) classes to be extended. It contains an array of objects. Each 
 object describes a single class to be extended. At the moment 
-of this writing, an object description contains the following 
+of this writing, a minimal object description contains the following 
 attributes:
+   ```
+   {
+     "class": ...,
+     "file": ...
+   }
+   ```
+
+If a new folder was created while configuring the plugin ((see [Configuration](#configuration) above), a basic 
+configuration file with these fields is created automatically.
+
+Sometimes you may want to override the same class multiple times.
+In that case you can specify the route to which each override applies,
+by adding an additional `route` field: 
+
    ```
    {
      "class": ...,
@@ -175,6 +198,8 @@ attributes:
      }
    }
    ```
+### Class description fields
+
 `class`: the name of the class to be extended.
 
 `file`: the path of the file containing the class to be 
