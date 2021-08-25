@@ -16,6 +16,7 @@
         <tags>
             <tag>stable</tag>
         </tags>
+        <php_minimum>7.4</php_minimum>
         <targetplatform name="joomla" version="(3.[9|10])|(4.0)" />
     </update>
 </updates>
