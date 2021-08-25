@@ -31,7 +31,7 @@
         <downloads>
             <downloadurl type="full" format="zip">https://github.com/pjdevries/plg_system_classextender/releases/download/v1.0.1/plg_system_classextender-1.0.1.zip</downloadurl>
         </downloads>
-        <sha512>766a5b6ecd785f8db05e1a62be6655506efeeea1fd5d87107c4c5b52c0c58e5c0c9d427302077e39eabbfd4ab233d38d0cc47519502a4b6f04b280a8249d6778</sha512>
+        <sha512>ec5d5d7666a60528f5d5307bb6bc9d96edde17dc6991b4c5658f6590b86d514f9ba017c357fc38f9cccd1a1cbb633c58258c76cf7126cd81f2a432540431c5fd</sha512>
         <tags>
             <tag>stable</tag>
         </tags>
