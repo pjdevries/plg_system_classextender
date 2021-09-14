@@ -150,21 +150,19 @@ class plgSystemClassExtender extends CMSPlugin
         }
 
         // Extract path without filename from original file path.
-        // We use this for the path of the copied original and
-        // for extended class file.
-        $classExtenderDir = dirname($originalClassFile);
+        // We use this for the path of the copied original containing
+	    // the class that will be extended and for the file that
+	    // contains the extended class itself.
+        $classBaseDir = dirname($originalClassFile);
 
-        // For route specific extensions we append the route specs name.
-        if ($hasRoute)
-        {
-            $classExtenderDir .= '/' . $extensionSpecs->route->name;
-        }
-
-        // Both the the name of the extended class and its filename are the same as
-        // the name of the original class. The file is located next to the copy of
-        // the original class file.
-        $extendedClassFile = sprintf("%s/%s/%s.php",
-            $this->extenderRootPath, $classExtenderDir, $className);
+        // Both the the name of the extended class and its filename are
+	    // the same as the name of the original class. For route specific
+	    // extensions we append the route name to the base dir.
+        $extendedClassFile = $hasRoute
+	        ? sprintf("%s/%s/%s/%s.php",
+		        $this->extenderRootPath, $classBaseDir, $extensionSpecs->route->name, $className)
+	        : sprintf("%s/%s/%s.php",
+                $this->extenderRootPath, $classBaseDir, $className);
 
         // If no extended class file exists, we're done already.
         if (!file_exists($extendedClassFile))
@@ -172,11 +170,11 @@ class plgSystemClassExtender extends CMSPlugin
             return;
         }
 
-        // The class to be extended is copied to a file named after the
-        // original class, but with 'ExtensionBase' appended, in the same
-	    // directory as the original.
+        // The original class to be extended is copied to a file named after
+        // the original class, but with 'ExtensionBase' appended. The copy
+	    // is located in the same directory as the original.
         $toBeExtendedClassFile = sprintf("%s/%s/%s%s.php",
-	        JPATH_ROOT, $classExtenderDir, $className, self::EXTENSION);
+	        JPATH_ROOT, $classBaseDir, $className, self::EXTENSION);
 
         // Make original file path absolute.
         $orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
