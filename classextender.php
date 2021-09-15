@@ -192,7 +192,17 @@ class plgSystemClassExtender extends CMSPlugin
             file_put_contents($toBeExtendedClassFile, $ExtensionBaseContents);
         }
 
-        // Now we first include the copy of the original class file, making the original
+		// First check if there are any files the overridden or overriding
+	    // class depend on and load them if there are.
+	    if (isset($extensionSpecs->dependencies))
+	    {
+		    foreach ((array) $extensionSpecs->dependencies as $dependency)
+		    {
+			    include_once JPATH_ROOT . '/' . trim($dependency, '\\/');
+		    }
+	    }
+
+        // Then include the copy of the original class file, making the original
         // class available with a derived name (i.e with 'ExtensionBase' appended).
         include_once $toBeExtendedClassFile;
 
