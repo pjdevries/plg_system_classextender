@@ -59,6 +59,7 @@ class JFormRuleValidFolderPath extends FormRule
 				File::write($file, <<<JSON
 					[
 					  {
+					    "client": "",
 					    "class": "",
 					    "file": ""
 					  }
