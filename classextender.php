@@ -53,6 +53,14 @@ class plgSystemClassExtender extends CMSPlugin
      */
     private $extenderRootPath = '';
 
+	/**
+	 * Set if we are called for the site or administrator client
+	 *
+	 * @var    string
+	 * @since  1.0.0
+	 */
+	private $client = '';
+
     const EXTENSION = 'ExtensionBase';
 
 	public function __construct(&$subject, $config = array())
@@ -70,6 +78,8 @@ class plgSystemClassExtender extends CMSPlugin
 
 		// Remove amy leading and trailing slashes and prefix with website root.
 		$this->extenderRootPath = JPATH_ROOT . '/'. trim($this->extenderRootPath, '\\/');
+
+		$this->client = $this->app->getName();
 	}
 
 	/**
@@ -126,6 +136,14 @@ class plgSystemClassExtender extends CMSPlugin
 
     private function extend(\stdClass $extensionSpecs): void
     {
+		// Check if we need to verify the correct application client
+		if (isset($extensionSpecs->client)
+			&& !empty($extensionSpecs->client)
+			&& $extensionSpecs->client !== $this->client)
+		{
+			return;
+		}
+
         $className = $extensionSpecs->class;
 
         // Remove root path ...
