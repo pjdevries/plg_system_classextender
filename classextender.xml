@@ -7,7 +7,7 @@
 	<authorUrl>https://www.obix.nl</authorUrl>
 	<copyright>Copyright © 2020 Obix webtechniek. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 	<description>PLG_SYSTEM_CLASS_EXTENDER_XML_DESCRIPTION</description>
 
 	<!-- Scripts to run on installation -->
