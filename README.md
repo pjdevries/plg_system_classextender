@@ -167,11 +167,11 @@ the bootstrap phase, before any plugin events are triggered.
 
 ## <a id="json-spec">JSON specification</a>
 
-File `[web root]/<path_to_extender_folder>/class_extensions.json` contains JSON encoded information 
-about the (core) classes to be extended. It contains an array of objects. Each 
-object describes a single class to be extended. At the moment 
-of this writing, a minimal object description contains the following 
-attributes:
+File `[web root]/<path_to_extender_folder>/class_extensions.json` describes the 
+(core) classes to be extended. It is a JSON file, containing extension descriptions
+as an array of objects. Each object describes a single class to be extended. At 
+the moment of this writing, a minimal extension description _must_ contain at least 
+the following attributes:
    ```
    {
      "class": ...,
@@ -179,42 +179,56 @@ attributes:
    }
    ```
 
-If a new folder was created while configuring the plugin ((see [Configuration](#configuration) above), a basic 
-configuration file with these fields is created automatically.
+If a new folder was created while configuring the plugin ((see 
+[Configuration](#configuration) above), a basic configuration file with these 
+fields is created automatically.
 
-Sometimes you may want to override the same class multiple times.
-In that case you can specify the route to which each override applies,
-by adding an additional `route` field: 
+A complete extension description may contain the following attributes:
 
    ```
    {
-     "class": ...,
-     "file": ...,
+     "class": "...",
+     "file": "...",
+     "client": "...",
+     "dependencies": [
+      "...",
+      "...",
+      ...
+     ],
      "route": {
-        "name": ...,
-        "option": ...,
-        "view": ...,
-        "layout": ...
+        "name": "...",
+        "option": "...",
+        "view": "...",
+        "layout": "..."
      }
    }
    ```
-### Class description fields
+### Extension description fields
 
-`class`: the name of the class to be extended.
+`class` (required): The name of the class to be extended.
 
-`file`: the path of the file containing the class to be 
+`file` (required): The path of the file containing the class to be 
 extended, relative to the website root.
 
-`route` an optional set of attributes, describing the route to 
-match for the extended class for be effectuated. If not 
+`client` (optional): The part of the website the extended class is to be effectuated
+for. This attribute must contain a valid client identifier, which can be one `site` 
+or `administrator`. Starting with Joomla! 4, it can also be one of `api` or 
+`installation`.
+
+`dependencies` (optional): An array containing paths of files, relative to 
+the website root, containing classes the extended class depends on. Those class 
+files will be loaded before loading the extended and extending class files.
+
+`route` (optional): A set of attributes, describing a route to 
+match for the extended class to be effectuated. If not 
 present, the extended class is always in effect.
 
-`route.name`: the name of the subdirectory to be added to the 
+`route.name` (required): the name of the subdirectory to be added to the 
 default path, when looking for an extended class definition.
 
-`route.option`, `route.view` and `route.layout`: the values to 
-compare to the request parameters with the same names, 
-when determining if a route matches.  
+`route.option`, `route.view` and `route.layout` (at least one requierd): the 
+values to compare to the request parameters with the same names, when 
+determining if a route matches.  
 
 ## Credits
 
