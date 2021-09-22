@@ -179,10 +179,6 @@ the following attributes:
    }
    ```
 
-If a new folder was created while configuring the plugin ((see 
-[Configuration](#configuration) above), a basic configuration file with these 
-fields is created automatically.
-
 A complete extension description may contain the following attributes:
 
    ```
@@ -203,6 +199,11 @@ A complete extension description may contain the following attributes:
      }
    }
    ```
+
+If a new folder was created while configuring the plugin ((see
+[Configuration](#configuration) above), a basic configuration file with these
+fields is created automatically.
+
 ### Extension description fields
 
 `class` (required): The name of the class to be extended.
