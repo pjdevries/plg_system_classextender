@@ -172,7 +172,7 @@ class plgSystemClassExtender extends CMSPlugin
 		// contains the extended class itself.
 		$classBaseDir = dirname($originalClassFile);
 
-		// Both the the name of the extended class and its filename are
+		// Both the name of the extended class and its filename are
 		// the same as the name of the original class. For route specific
 		// extensions we append the route name to the base dir.
 		$extendedClassFile = $hasRoute
