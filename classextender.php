@@ -124,6 +124,12 @@ class plgSystemClassExtender extends CMSPlugin
 		//           containing the original class definition to be extended.
 		// - "class": the name of the original class to be extended.
 		$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile));
+
+		if ($classExtensions === null)
+		{
+			throw new \RuntimeException(Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'));
+		}
+
 		$classExtensions = array_filter($classExtensions, function (\stdClass $extensionSpecs) use ($routed) {
 			return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
 		});
