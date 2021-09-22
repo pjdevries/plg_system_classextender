@@ -70,6 +70,7 @@ class JFormRuleValidFolderPath extends FormRule
 					        "view": "",
 					        "task": "",
 					        "layout": ""
+					        "Itemid": ""
 					    }
 					  }
 					]

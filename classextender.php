@@ -238,7 +238,8 @@ class plgSystemClassExtender extends CMSPlugin
 			'option',
 			'view',
 			'layout',
-			'task'
+			'task',
+			'Itemid'
 		];
 
 		foreach ($routeElements as $element)
