@@ -215,7 +215,10 @@ class plgSystemClassExtender extends CMSPlugin
 		{
 			foreach ((array) $extensionSpecs->dependencies as $dependency)
 			{
-				include_once JPATH_ROOT . '/' . trim($dependency, '\\/');
+				if (!empty($dependency))
+				{
+					include_once JPATH_ROOT . '/' . trim($dependency, '\\/');
+				}
 			}
 		}
 
