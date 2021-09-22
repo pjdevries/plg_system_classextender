@@ -61,7 +61,16 @@ class JFormRuleValidFolderPath extends FormRule
 					  {
 					    "client": "",
 					    "class": "",
-					    "file": ""
+					    "file": "",
+					    "dependencies": [
+					        ""
+					    ],
+					    "route": {
+					        "name": "",
+					        "view": "",
+					        "task": "",
+					        "layout": ""
+					    }
 					  }
 					]
 					JSON
