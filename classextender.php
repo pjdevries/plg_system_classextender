@@ -13,6 +13,19 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Version;
+use Obix\ClassExtender\ClassExtenderException;
+
+if (Version::MAJOR_VERSION <= 3)
+{
+	\JLoader::registerNamespace(
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries');
+}
+else
+{
+	\JLoader::registerNamespace(
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries/Obix');
+}
 
 /**
  * ClassExtender plugin.
@@ -89,7 +102,7 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	public function onAfterInitialise(): void
 	{
-		// Initialise non routed extended (core) classses.
+		// Initialise non routed extended (core) classes.
 		$this->extendClasses(false);
 	}
 
@@ -100,7 +113,7 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	public function onAfterRoute(): void
 	{
-		// Initialise routed extended (core) classses.
+		// Initialise routed extended (core) classes.
 		$this->extendClasses(true);
 	}
 
@@ -109,32 +122,54 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	private function extendClasses(bool $routed): void
 	{
-		// File path of the class extension specifications.
-		$classExtenderSepecificationFile = $this->extenderRootPath . '/class_extensions.json';
-
-		// If no specification file exists, we're done already.
-		if (!file_exists($classExtenderSepecificationFile))
+		try
 		{
-			return;
+			// File path of the class extension specifications.
+			$classExtenderSepecificationFile = $this->extenderRootPath . '/class_extensions.json';
+
+			// If no specification file exists, we're done already.
+			if (!file_exists($classExtenderSepecificationFile))
+			{
+				return;
+			}
+
+			// Read json encoded file and decode into array of \stdClass objects.
+			// The file contains an array of objects with the following attributes:
+			// - "file": the path of the file, relative to the website root,
+			//           containing the original class definition to be extended.
+			// - "class": the name of the original class to be extended.
+			try
+			{
+				$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile),
+					null, 512, JSON_THROW_ON_ERROR);
+			}
+			catch (JsonException $exception)
+			{
+				throw new ClassExtenderException(
+					Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'),
+					ClassExtenderException::TYPE_ERROR);
+			}
+
+			$classExtensions = array_filter($classExtensions, function (stdClass $extensionSpecs) use ($routed) {
+				return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
+			});
+
+			foreach ($classExtensions as $extensionSpecs)
+			{
+				$this->extend($extensionSpecs);
+			}
 		}
-
-		// Read json encoded file and decode into array of \stdClass objects.
-		// The file contains an array of objects with the following attributes:
-		// - "file": the path of the file, relative to the website root,
-		//           containing the original class definition to be extended.
-		// - "class": the name of the original class to be extended.
-		$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile));
-		$classExtensions = array_filter($classExtensions, function (\stdClass $extensionSpecs) use ($routed) {
-			return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
-		});
-
-		foreach ($classExtensions as $extensionSpecs)
+		catch (ClassExtenderException $exception)
 		{
-			$this->extend($extensionSpecs);
+			$this->app->enqueueMessage($exception->getMessage(), $exception->getMessageType());
+		}
+		catch (Exception $exception)
+		{
+			$this->app->enqueueMessage(Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $exception->getMessage()), 'error');
 		}
 	}
 
-	private function extend(\stdClass $extensionSpecs): void
+	private function extend(stdClass $extensionSpecs): void
 	{
 		// Check if we need to verify the correct application client
 		if (isset($extensionSpecs->client)
@@ -142,6 +177,13 @@ class plgSystemClassExtender extends CMSPlugin
 			&& $extensionSpecs->client !== $this->client)
 		{
 			return;
+		}
+
+		if (empty($extensionSpecs->file ?? '') || empty($extensionSpecs->class ?? ''))
+		{
+			throw new ClassExtenderException(
+				Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_CLASS_DESCRIPTION'),
+				ClassExtenderException::TYPE_ERROR);
 		}
 
 		$className = $extensionSpecs->class;
@@ -155,9 +197,24 @@ class plgSystemClassExtender extends CMSPlugin
 		// If the extension specifications only applies to a specific route,
 		// we expect a name to be used as part of the path name (see below).
 		// This implies that the route specs name must be filename safe.
-		$hasRoute = isset($extensionSpecs->route)
-			&& isset($extensionSpecs->route->name)
-			&& !empty($extensionSpecs->route->name);
+		$hasRoute = isset($extensionSpecs->route);
+
+		if ($hasRoute && empty($extensionSpecs->route->name ?? ''))
+		{
+			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_CLASS_EXTENDER_MISSING_ROUTE_NAME'), 'warning');
+		}
+
+		if ($hasRoute)
+		{
+			$routeSpecifiers = array_filter(get_object_vars($extensionSpecs->route), function (string $value, string $name) {
+				return $name !== 'name' && !empty($value);
+			}, ARRAY_FILTER_USE_BOTH);
+		}
+
+		if ($hasRoute && !count($routeSpecifiers ?? []))
+		{
+			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_CLASS_EXTENDER_MISSING_ROUTE_SPECS'), 'warning');
+		}
 
 		// If the extension specifications only applies to a specific route,
 		// we check if the current route matches the route specs.
@@ -172,7 +229,7 @@ class plgSystemClassExtender extends CMSPlugin
 		// contains the extended class itself.
 		$classBaseDir = dirname($originalClassFile);
 
-		// Both the the name of the extended class and its filename are
+		// Both the name of the extended class and its filename are
 		// the same as the name of the original class. For route specific
 		// extensions we append the route name to the base dir.
 		$extendedClassFile = $hasRoute
@@ -184,7 +241,20 @@ class plgSystemClassExtender extends CMSPlugin
 		// If no extended class file exists, we're done already.
 		if (!file_exists($extendedClassFile))
 		{
-			return;
+			throw new ClassExtenderException(
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_EXTENDED_CLASS_FILE_MISSING', basename($extendedClassFile)),
+				ClassExtenderException::TYPE_ERROR);
+		}
+
+		// Make original file path absolute.
+		$orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
+
+		// If file with class to be extended does not exists, we're done already.
+		if (!file_exists($orgiginalClassFile))
+		{
+			throw new ClassExtenderException(
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', str_ireplace(JPATH_SITE, '', $orgiginalClassFile)),
+				ClassExtenderException::TYPE_ERROR);
 		}
 
 		// The original class to be extended is copied to a file named after
@@ -192,9 +262,6 @@ class plgSystemClassExtender extends CMSPlugin
 		// is located in the same directory as the original.
 		$toBeExtendedClassFile = sprintf("%s/%s/%s%s.php",
 			JPATH_ROOT, $classBaseDir, $className, self::EXTENSION);
-
-		// Make original file path absolute.
-		$orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
 
 		// If no copy of the original class file exists or if it has changed since
 		// the copy was made, we make a fresh copy.
@@ -232,7 +299,7 @@ class plgSystemClassExtender extends CMSPlugin
 		include_once $extendedClassFile;
 	}
 
-	private function isEnRoute(\stdClass $extensionSpecsRoute): bool
+	private function isEnRoute(stdClass $extensionSpecsRoute): bool
 	{
 		static $routeElements = [
 			'option',

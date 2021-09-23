@@ -195,7 +195,8 @@ A complete extension description may contain the following attributes:
         "name": "...",
         "option": "...",
         "view": "...",
-        "layout": "..."
+        "layout": "...",
+        "task": "..."
      }
    }
    ```
@@ -227,7 +228,7 @@ present, the extended class is always in effect.
 `route.name` (required): the name of the subdirectory to be added to the 
 default path, when looking for an extended class definition.
 
-`route.option`, `route.view` and `route.layout` (at least one requierd): the 
+`route.option`, `route.view`, `route.layout`, `route.task`, and `route.Itemid` (at least one required): the 
 values to compare to the request parameters with the same names, when 
 determining if a route matches.  
 

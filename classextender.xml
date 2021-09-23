@@ -17,6 +17,7 @@
 	<files>
 		<filename plugin="classextender">classextender.php</filename>
 		<folder>language</folder>
+		<folder>libraries</folder>
 		<folder>rules</folder>
 		<filename>LICENSE.txt</filename>
 		<filename>README.md</filename>
