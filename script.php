@@ -12,6 +12,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Installer\Adapter\PluginAdapter;
+use Joomla\CMS\Installer\InstallerScript;
 
 /**
  * ClassExtender script file.
@@ -19,8 +20,19 @@ use Joomla\CMS\Installer\Adapter\PluginAdapter;
  * @package   Obix Class Extender System Plugin
  * @since     1.0.0
  */
-class plgSystemClassExtenderInstallerScript
+class plgSystemClassExtenderInstallerScript extends InstallerScript
 {
+	/**
+	 * Extension script constructor.
+	 *
+	 * @since   1.2.0
+	 */
+	public function __construct()
+	{
+		$this->minimumJoomla = '3.9';
+		$this->minimumPhp    = '7.4';
+	}
+
 	/**
 	 * Called after any type of action.
 	 *
