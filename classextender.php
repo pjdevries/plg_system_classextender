@@ -102,7 +102,7 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	public function onAfterInitialise(): void
 	{
-		// Initialise non routed extended (core) classses.
+		// Initialise non routed extended (core) classes.
 		$this->extendClasses(false);
 	}
 
@@ -113,7 +113,7 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	public function onAfterRoute(): void
 	{
-		// Initialise routed extended (core) classses.
+		// Initialise routed extended (core) classes.
 		$this->extendClasses(true);
 	}
 
@@ -143,14 +143,14 @@ class plgSystemClassExtender extends CMSPlugin
 				$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile),
 					null, 512, JSON_THROW_ON_ERROR);
 			}
-			catch (\JsonException $e)
+			catch (JsonException $exception)
 			{
 				throw new ClassExtenderException(
 					Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'),
 					ClassExtenderException::TYPE_ERROR);
 			}
 
-			$classExtensions = array_filter($classExtensions, function (\stdClass $extensionSpecs) use ($routed) {
+			$classExtensions = array_filter($classExtensions, function (stdClass $extensionSpecs) use ($routed) {
 				return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
 			});
 
@@ -159,17 +159,17 @@ class plgSystemClassExtender extends CMSPlugin
 				$this->extend($extensionSpecs);
 			}
 		}
-		catch (ClassExtenderException $e)
+		catch (ClassExtenderException $exception)
 		{
-			$this->app->enqueueMessage($e->getMessage(), $e->getMessageType());
+			$this->app->enqueueMessage($exception->getMessage(), $exception->getMessageType());
 		}
-		catch (\Exception $e)
+		catch (Exception $exception)
 		{
-			$this->app->enqueueMessage(Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $e->getMessage()), 'error');
+			$this->app->enqueueMessage(Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $exception->getMessage()), 'error');
 		}
 	}
 
-	private function extend(\stdClass $extensionSpecs): void
+	private function extend(stdClass $extensionSpecs): void
 	{
 		// Check if we need to verify the correct application client
 		if (isset($extensionSpecs->client)
@@ -242,7 +242,7 @@ class plgSystemClassExtender extends CMSPlugin
 		if (!file_exists($extendedClassFile))
 		{
 			throw new ClassExtenderException(
-				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_EXTENDED_CLASS_FILE_MISSING', $extendedClassFile),
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_EXTENDED_CLASS_FILE_MISSING', basename($extendedClassFile)),
 				ClassExtenderException::TYPE_ERROR);
 		}
 
@@ -253,7 +253,7 @@ class plgSystemClassExtender extends CMSPlugin
 		if (!file_exists($orgiginalClassFile))
 		{
 			throw new ClassExtenderException(
-				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', $orgiginalClassFile),
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', str_ireplace(JPATH_SITE, '', $orgiginalClassFile)),
 				ClassExtenderException::TYPE_ERROR);
 		}
 
@@ -299,7 +299,7 @@ class plgSystemClassExtender extends CMSPlugin
 		include_once $extendedClassFile;
 	}
 
-	private function isEnRoute(\stdClass $extensionSpecsRoute): bool
+	private function isEnRoute(stdClass $extensionSpecsRoute): bool
 	{
 		static $routeElements = [
 			'option',

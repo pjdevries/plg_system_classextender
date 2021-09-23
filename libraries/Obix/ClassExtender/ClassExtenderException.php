@@ -1,25 +1,26 @@
 <?php
 /**
- * @package     Obix\ClassExtender
- * @subpackage
+ * @package    Obix Class Extender System Plugin
  *
- * @copyright   A copyright
- * @license     A "Slug" license name e.g. GPL2
+ * @author     Pieter-Jan de Vries/Obix webtechniek <pieter@obix.nl>
+ * @copyright  Copyright © 2020 Obix webtechniek. All rights reserved.
+ * @license    GNU General Public License version 2 or later; see LICENSE.txt
+ * @link       https://www.obix.nl
  */
 
 namespace Obix\ClassExtender;
 
 use Joomla\CMS\Factory;
-use Throwable;
+use RuntimeException;
 
 /**
  * Class extender exception.
  *
  * @package   Obix Class Extender System Plugin
  *
- * @since       1.2.0
+ * @since     1.2.0
  */
-class ClassExtenderException extends \RuntimeException
+class ClassExtenderException extends RuntimeException
 {
 	/**
 	 * Message types.
@@ -30,7 +31,11 @@ class ClassExtenderException extends \RuntimeException
 	const TYPE_ERROR = 3;
 
 	/**
-	 * @return string
+	 * Get the name of a specific error code.
+	 *
+	 * @return  string  The type of message.
+	 *
+	 * @since   1.2.0
 	 */
 	public function getMessageType(): string
 	{
