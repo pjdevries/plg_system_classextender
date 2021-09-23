@@ -179,6 +179,13 @@ class plgSystemClassExtender extends CMSPlugin
 			return;
 		}
 
+		if (empty($extensionSpecs->file ?? '') || empty($extensionSpecs->class ?? ''))
+		{
+			throw new ClassExtenderException(
+				Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_CLASS_DESCRIPTION'),
+				ClassExtenderException::TYPE_ERROR);
+		}
+
 		$className = $extensionSpecs->class;
 
 		// Remove root path ...
@@ -190,9 +197,24 @@ class plgSystemClassExtender extends CMSPlugin
 		// If the extension specifications only applies to a specific route,
 		// we expect a name to be used as part of the path name (see below).
 		// This implies that the route specs name must be filename safe.
-		$hasRoute = isset($extensionSpecs->route)
-			&& isset($extensionSpecs->route->name)
-			&& !empty($extensionSpecs->route->name);
+		$hasRoute = isset($extensionSpecs->route);
+
+		if ($hasRoute && empty($extensionSpecs->route->name ?? ''))
+		{
+			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_CLASS_EXTENDER_MISSING_ROUTE_NAME'), 'warning');
+		}
+
+		if ($hasRoute)
+		{
+			$routeSpecifiers = array_filter(get_object_vars($extensionSpecs->route), function (string $value, string $name) {
+				return $name !== 'name' && !empty($value);
+			}, ARRAY_FILTER_USE_BOTH);
+		}
+
+		if ($hasRoute && !count($routeSpecifiers ?? []))
+		{
+			$this->app->enqueueMessage(Text::_('PLG_SYSTEM_CLASS_EXTENDER_MISSING_ROUTE_SPECS'), 'warning');
+		}
 
 		// If the extension specifications only applies to a specific route,
 		// we check if the current route matches the route specs.
@@ -219,7 +241,20 @@ class plgSystemClassExtender extends CMSPlugin
 		// If no extended class file exists, we're done already.
 		if (!file_exists($extendedClassFile))
 		{
-			return;
+			throw new ClassExtenderException(
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_EXTENDED_CLASS_FILE_MISSING', $extendedClassFile),
+				ClassExtenderException::TYPE_ERROR);
+		}
+
+		// Make original file path absolute.
+		$orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
+
+		// If file with class to be extended does not exists, we're done already.
+		if (!file_exists($orgiginalClassFile))
+		{
+			throw new ClassExtenderException(
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', $orgiginalClassFile),
+				ClassExtenderException::TYPE_ERROR);
 		}
 
 		// The original class to be extended is copied to a file named after
@@ -227,9 +262,6 @@ class plgSystemClassExtender extends CMSPlugin
 		// is located in the same directory as the original.
 		$toBeExtendedClassFile = sprintf("%s/%s/%s%s.php",
 			JPATH_ROOT, $classBaseDir, $className, self::EXTENSION);
-
-		// Make original file path absolute.
-		$orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
 
 		// If no copy of the original class file exists or if it has changed since
 		// the copy was made, we make a fresh copy.
