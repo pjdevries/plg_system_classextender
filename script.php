@@ -11,7 +11,9 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Installer\Adapter\PluginAdapter;
+use Joomla\CMS\Installer\InstallerScript;
 
 /**
  * ClassExtender script file.
@@ -19,8 +21,19 @@ use Joomla\CMS\Installer\Adapter\PluginAdapter;
  * @package   Obix Class Extender System Plugin
  * @since     1.0.0
  */
-class plgSystemClassExtenderInstallerScript
+class plgSystemClassExtenderInstallerScript extends InstallerScript
 {
+	/**
+	 * Extension script constructor.
+	 *
+	 * @since   1.2.0
+	 */
+	public function __construct()
+	{
+		$this->minimumJoomla = '3.9';
+		$this->minimumPhp    = '7.4';
+	}
+
 	/**
 	 * Called after any type of action.
 	 *
@@ -44,5 +57,23 @@ class plgSystemClassExtenderInstallerScript
 			$db->setQuery($query);
 			$db->execute();
 		}
+
+		$this->installLibrary($adapter);
+	}
+
+	/**
+	 * Install the library.
+	 *
+	 * @param   PluginAdapter  $adapter  The class calling this method.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.2.0
+	 */
+	private function installLibrary(PluginAdapter $adapter): void
+	{
+		$src = $adapter->getParent()->getPath('source');
+
+		Folder::copy($src . '/libraries', JPATH_LIBRARIES, '', true);
 	}
 }
