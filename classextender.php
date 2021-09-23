@@ -13,6 +13,19 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Version;
+use Obix\ClassExtender\ClassExtenderException;
+
+if (Version::MAJOR_VERSION <= 3)
+{
+	\JLoader::registerNamespace(
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries');
+}
+else
+{
+	\JLoader::registerNamespace(
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries/Obix');
+}
 
 /**
  * ClassExtender plugin.
@@ -109,34 +122,50 @@ class plgSystemClassExtender extends CMSPlugin
 	 */
 	private function extendClasses(bool $routed): void
 	{
-		// File path of the class extension specifications.
-		$classExtenderSepecificationFile = $this->extenderRootPath . '/class_extensions.json';
-
-		// If no specification file exists, we're done already.
-		if (!file_exists($classExtenderSepecificationFile))
+		try
 		{
-			return;
+			// File path of the class extension specifications.
+			$classExtenderSepecificationFile = $this->extenderRootPath . '/class_extensions.json';
+
+			// If no specification file exists, we're done already.
+			if (!file_exists($classExtenderSepecificationFile))
+			{
+				return;
+			}
+
+			// Read json encoded file and decode into array of \stdClass objects.
+			// The file contains an array of objects with the following attributes:
+			// - "file": the path of the file, relative to the website root,
+			//           containing the original class definition to be extended.
+			// - "class": the name of the original class to be extended.
+			try
+			{
+				$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile),
+					null, 512, JSON_THROW_ON_ERROR);
+			}
+			catch (\JsonException $e)
+			{
+				throw new ClassExtenderException(
+					Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'),
+					ClassExtenderException::TYPE_ERROR);
+			}
+
+			$classExtensions = array_filter($classExtensions, function (\stdClass $extensionSpecs) use ($routed) {
+				return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
+			});
+
+			foreach ($classExtensions as $extensionSpecs)
+			{
+				$this->extend($extensionSpecs);
+			}
 		}
-
-		// Read json encoded file and decode into array of \stdClass objects.
-		// The file contains an array of objects with the following attributes:
-		// - "file": the path of the file, relative to the website root,
-		//           containing the original class definition to be extended.
-		// - "class": the name of the original class to be extended.
-		$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile));
-
-		if ($classExtensions === null)
+		catch (ClassExtenderException $e)
 		{
-			throw new \RuntimeException(Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'));
+			$this->app->enqueueMessage($e->getMessage(), $e->getMessageType());
 		}
-
-		$classExtensions = array_filter($classExtensions, function (\stdClass $extensionSpecs) use ($routed) {
-			return (($routed && isset($extensionSpecs->route)) || (!$routed && !isset($extensionSpecs->route)));
-		});
-
-		foreach ($classExtensions as $extensionSpecs)
+		catch (\Exception $e)
 		{
-			$this->extend($extensionSpecs);
+			$this->app->enqueueMessage(Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $e->getMessage()), 'error');
 		}
 	}
 
