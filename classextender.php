@@ -247,13 +247,13 @@ class plgSystemClassExtender extends CMSPlugin
 		}
 
 		// Make original file path absolute.
-		$orgiginalClassFile = JPATH_ROOT . '/' . $originalClassFile;
+		$originalClassFile = JPATH_ROOT . '/' . $originalClassFile;
 
-		// If file with class to be extended does not exists, we're done already.
-		if (!file_exists($orgiginalClassFile))
+		// If file with class to be extended does not exist, we're done already.
+		if (!file_exists($originalClassFile))
 		{
 			throw new ClassExtenderException(
-				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', str_ireplace(JPATH_SITE, '', $orgiginalClassFile)),
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', str_ireplace(JPATH_SITE, '', $originalClassFile)),
 				ClassExtenderException::TYPE_ERROR);
 		}
 
@@ -265,9 +265,9 @@ class plgSystemClassExtender extends CMSPlugin
 
 		// If no copy of the original class file exists or if it has changed since
 		// the copy was made, we make a fresh copy.
-		if (!file_exists($toBeExtendedClassFile) || filemtime($orgiginalClassFile) > filemtime($toBeExtendedClassFile))
+		if (!file_exists($toBeExtendedClassFile) || filemtime($originalClassFile) > filemtime($toBeExtendedClassFile))
 		{
-			$orgFileContents = file_get_contents($orgiginalClassFile);
+			$orgFileContents = file_get_contents($originalClassFile);
 
 			static $replacement = '$1' . self::EXTENSION;
 			$pattern               = '/\b(' . $className . ')\b/';
@@ -290,11 +290,11 @@ class plgSystemClassExtender extends CMSPlugin
 		}
 
 		// Then include the copy of the original class file, making the original
-		// class available with a derived name (i.e with 'ExtensionBase' appended).
+		// class available with a derived name (i.e. with 'ExtensionBase' appended).
 		include_once $toBeExtendedClassFile;
 
 		// Next we include overriding class, which has the name of the original class
-		// and extends the original class by refering to the derived name of the copy.
+		// and extends the original class by referring to the derived name of the copy.
 		// The overriding class is now loaded and readily available.
 		include_once $extendedClassFile;
 	}
@@ -306,6 +306,7 @@ class plgSystemClassExtender extends CMSPlugin
 			'view',
 			'layout',
 			'task',
+			'format',
 			'Itemid'
 		];
 
