@@ -19,12 +19,14 @@ use Obix\ClassExtender\ClassExtenderException;
 if (Version::MAJOR_VERSION <= 3)
 {
 	\JLoader::registerNamespace(
-		'Obix', JPATH_PLUGINS . '/system/classextender/libraries');
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries'
+	);
 }
 else
 {
 	\JLoader::registerNamespace(
-		'Obix', JPATH_PLUGINS . '/system/classextender/libraries/Obix');
+		'Obix', JPATH_PLUGINS . '/system/classextender/libraries/Obix'
+	);
 }
 
 /**
@@ -76,7 +78,7 @@ class plgSystemClassExtender extends CMSPlugin
 
 	const EXTENSION = 'ExtensionBase';
 
-	public function __construct(&$subject, $config = array())
+	public function __construct(&$subject, $config = [])
 	{
 		parent::__construct($subject, $config);
 
@@ -140,14 +142,17 @@ class plgSystemClassExtender extends CMSPlugin
 			// - "class": the name of the original class to be extended.
 			try
 			{
-				$classExtensions = json_decode(file_get_contents($classExtenderSepecificationFile),
-					null, 512, JSON_THROW_ON_ERROR);
+				$classExtensions = json_decode(
+					file_get_contents($classExtenderSepecificationFile),
+					null, 512, JSON_THROW_ON_ERROR
+				);
 			}
 			catch (JsonException $exception)
 			{
 				throw new ClassExtenderException(
 					Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_JSON_FILE'),
-					ClassExtenderException::TYPE_ERROR);
+					ClassExtenderException::TYPE_ERROR
+				);
 			}
 
 			$classExtensions = array_filter($classExtensions, function (stdClass $extensionSpecs) use ($routed) {
@@ -165,7 +170,9 @@ class plgSystemClassExtender extends CMSPlugin
 		}
 		catch (Exception $exception)
 		{
-			$this->app->enqueueMessage(Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $exception->getMessage()), 'error');
+			$this->app->enqueueMessage(
+				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_UNFORESEEN_EXCEPTION', $exception->getMessage()), 'error'
+			);
 		}
 	}
 
@@ -183,14 +190,17 @@ class plgSystemClassExtender extends CMSPlugin
 		{
 			throw new ClassExtenderException(
 				Text::_('PLG_SYSTEM_CLASS_EXTENDER_INVALID_CLASS_DESCRIPTION'),
-				ClassExtenderException::TYPE_ERROR);
+				ClassExtenderException::TYPE_WARNING
+			);
 		}
 
 		$className = $extensionSpecs->class;
 
 		// Remove root path ...
-		$originalClassFile = preg_replace('#^' . preg_quote(JPATH_ROOT) . '#',
-			'', $extensionSpecs->file);
+		$originalClassFile = preg_replace(
+			'#^' . preg_quote(JPATH_ROOT) . '#',
+			'', $extensionSpecs->file
+		);
 		// ... and leading/trailing slashes from original file path.
 		$originalClassFile = trim($originalClassFile, '\\/');
 
@@ -233,17 +243,22 @@ class plgSystemClassExtender extends CMSPlugin
 		// the same as the name of the original class. For route specific
 		// extensions we append the route name to the base dir.
 		$extendedClassFile = $hasRoute
-			? sprintf("%s/%s/%s/%s.php",
-				$this->extenderRootPath, $classBaseDir, $extensionSpecs->route->name, $className)
-			: sprintf("%s/%s/%s.php",
-				$this->extenderRootPath, $classBaseDir, $className);
+			? sprintf(
+				"%s/%s/%s/%s.php",
+				$this->extenderRootPath, $classBaseDir, $extensionSpecs->route->name, $className
+			)
+			: sprintf(
+				"%s/%s/%s.php",
+				$this->extenderRootPath, $classBaseDir, $className
+			);
 
 		// If no extended class file exists, we're done already.
 		if (!file_exists($extendedClassFile))
 		{
 			throw new ClassExtenderException(
 				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_EXTENDED_CLASS_FILE_MISSING', basename($extendedClassFile)),
-				ClassExtenderException::TYPE_ERROR);
+				ClassExtenderException::TYPE_ERROR
+			);
 		}
 
 		// Make original file path absolute.
@@ -253,15 +268,21 @@ class plgSystemClassExtender extends CMSPlugin
 		if (!file_exists($originalClassFile))
 		{
 			throw new ClassExtenderException(
-				Text::sprintf('PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING', str_ireplace(JPATH_SITE, '', $originalClassFile)),
-				ClassExtenderException::TYPE_ERROR);
+				Text::sprintf(
+					'PLG_SYSTEM_CLASS_EXTENDER_TO_BE_EXTENDED_CLASS_FILE_MISSING',
+					str_ireplace(JPATH_SITE, '', $originalClassFile)
+				),
+				ClassExtenderException::TYPE_ERROR
+			);
 		}
 
 		// The original class to be extended is copied to a file named after
 		// the original class, but with 'ExtensionBase' appended. The copy
 		// is located in the same directory as the original.
-		$toBeExtendedClassFile = sprintf("%s/%s/%s%s.php",
-			JPATH_ROOT, $classBaseDir, $className, self::EXTENSION);
+		$toBeExtendedClassFile = sprintf(
+			"%s/%s/%s%s.php",
+			JPATH_ROOT, $classBaseDir, $className, self::EXTENSION
+		);
 
 		// If no copy of the original class file exists or if it has changed since
 		// the copy was made, we make a fresh copy.
@@ -269,9 +290,24 @@ class plgSystemClassExtender extends CMSPlugin
 		{
 			$orgFileContents = file_get_contents($originalClassFile);
 
-			static $replacement = '$1' . self::EXTENSION;
-			$pattern               = '/\b(' . $className . ')\b/';
-			$ExtensionBaseContents = preg_replace($pattern, $replacement, $orgFileContents);
+			// The following pattern is supposed to match a class declaration,
+			// returning the class name in first and only capture group.
+			// class\s+([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff-]+)(?:(?:\s+(?:extends|implements))|(?:\s*(?:\{|$)))
+			//
+			// Because we know which class name to look for,
+			// we replace the capture group pattern with the literal class name.
+			$pattern = '/class\s+(' . $className . ')(?:(?:[\s\r\n]+(?:extends|implements))|(?:[\s\n\r]*(?:\{|$)))/';
+			$replacement = $className . self::EXTENSION;
+
+			$ExtensionBaseContents = preg_replace_callback(
+				$pattern, function (array $matches) use ($className, $replacement) {
+				return ($matches[1] ?? null)
+					? substr($matches[0][0], 0, $matches[1][1] - $matches[0][1])
+					. $replacement
+					. substr($matches[0][0], $matches[1][1] - $matches[0][1] + strlen($className))
+					: $matches[0][0];
+			}, $orgFileContents, -1, $replacementCount, PREG_OFFSET_CAPTURE
+			);
 
 			file_put_contents($toBeExtendedClassFile, $ExtensionBaseContents);
 		}
@@ -307,7 +343,7 @@ class plgSystemClassExtender extends CMSPlugin
 			'layout',
 			'task',
 			'format',
-			'Itemid'
+			'Itemid',
 		];
 
 		foreach ($routeElements as $element)
