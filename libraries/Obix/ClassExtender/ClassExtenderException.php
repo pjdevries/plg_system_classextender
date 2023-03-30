@@ -10,6 +10,8 @@
 
 namespace Obix\ClassExtender;
 
+defined('_JEXEC') or die;
+
 use Joomla\CMS\Factory;
 use RuntimeException;
 
